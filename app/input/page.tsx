@@ -5,20 +5,30 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 export default function Input() {
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState('');
-  const [responses, setResponses] = useState([]);
-  const [debounceTimer, setDebounceTimer] = useState(null);
+  type ApiResponse =
+    | { uuid: string; token: string; [key: string]: unknown }
+    | { error: string };
+  const [responses, setResponses] = useState<ApiResponse[]>([]);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
+    null,
+  );
+  const router = useRouter();
 
   useEffect(() => {
-    if (inputRef.current) {
+    const token = Cookies.get('token');
+    if (!token) {
+      router.push('/');
+    } else if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, []);
+  }, [router]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
 
@@ -47,27 +57,32 @@ export default function Input() {
     };
   }, [value]);
 
-  const submit = (val) => {
+  const submit = (val: string) => {
     const token = Cookies.get('token');
-    if (!token || !val) return;
+    if (!token) {
+      router.push('/');
+      return;
+    }
+    if (!val) return;
 
-    axios.post('https://zonecheck.up.railway.app/api/visits', {
-      uuid: val,
-      token: token
-    })
-    .then(res => {
-      setResponses(prev => [...prev, res.data]);
-    })
-    .catch(err => {
-      console.error(err);
-      setResponses(prev => [...prev, { error: err.message }]);
-    })
-    .finally(() => {
-      setValue('');  // Clear input after submit or error
-      if (inputRef.current) {
-        inputRef.current.focus();  // Refocus for next entry
-      }
-    });
+    axios
+      .post('https://zonecheck.up.railway.app/api/visits', {
+        uuid: val,
+        token: token,
+      })
+      .then((res) => {
+        setResponses((prev) => [...prev, res.data]);
+      })
+      .catch((err) => {
+        console.error(err);
+        setResponses((prev) => [...prev, { error: err.message }]);
+      })
+      .finally(() => {
+        setValue(''); // Clear input after submit or error
+        if (inputRef.current) {
+          inputRef.current.focus(); // Refocus for next entry
+        }
+      });
   };
 
   return (
@@ -84,7 +99,10 @@ export default function Input() {
       />
       <div className="mt-4">
         {responses.map((resp, index) => (
-          <pre key={index} className="bg-gray-100 p-2 rounded mb-2 overflow-auto">
+          <pre
+            key={index}
+            className="bg-gray-100 p-2 rounded mb-2 overflow-auto"
+          >
             {JSON.stringify(resp, null, 2)}
           </pre>
         ))}
