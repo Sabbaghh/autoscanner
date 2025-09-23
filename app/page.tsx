@@ -8,7 +8,8 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [zones, setZones] = useState([]);
+  type Zone = { id: string | number; name: string };
+  const [zones, setZones] = useState<Zone[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -38,11 +39,11 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-4">
         {zones.map((zone) => (
           <div
-            key={zone.id}
+            key={zone?.id}
             className="p-4 bg-blue-200 rounded-lg shadow cursor-pointer hover:bg-blue-300 transition"
             onClick={() => handleClick(zone)}
           >
-            {zone.name}
+            {zone?.name}
           </div>
         ))}
       </div>
