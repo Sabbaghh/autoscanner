@@ -19,7 +19,7 @@ export default function Home() {
       .catch((err) => console.error(err));
   }, []);
 
-  const handleClick = (zone) => {
+  const handleClick = (zone: Zone) => {
     const randomName = 'Whatever' + Math.floor(Math.random() * 1000);
     axios
       .post('https://zonecheck.up.railway.app/api/scanner/pair', {
