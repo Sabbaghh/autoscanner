@@ -1,5 +1,3 @@
-// app/input/page.tsx
-
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -14,9 +12,6 @@ export default function Input() {
     | { uuid: string; token: string; [key: string]: unknown }
     | { error: string };
   const [responses, setResponses] = useState<ApiResponse[]>([]);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
-    null,
-  );
   const router = useRouter();
 
   useEffect(() => {
@@ -38,24 +33,11 @@ export default function Input() {
     }
   };
 
-  useEffect(() => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      submit(value);
     }
-
-    if (value) {
-      const timer = setTimeout(() => {
-        submit(value);
-      }, 10); // Adjust the delay as needed (300ms pause to detect end of input)
-      setDebounceTimer(timer);
-    }
-
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-    };
-  }, [value]);
+  };
 
   const submit = (val: string) => {
     const token = Cookies.get('token');
@@ -92,6 +74,7 @@ export default function Input() {
         value={value}
         onChange={handleChange}
         onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         ref={inputRef}
         className="w-full p-4 border border-gray-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="Enter UUID"
